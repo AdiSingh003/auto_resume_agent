@@ -1,97 +1,134 @@
-# 🚀 Autonomous Resume & Application Agent
+# Autonomous Resume & Application Agent
 
-An **Agentic AI** system that autonomously takes a candidate's base information and a target job description, then researches, drafts, evaluates, revises, and delivers a **truthful, ATS-optimized, role-tailored resume as a PDF**.
+Give it your background and a job posting, and it writes you a tailored, one-page PDF resume —
+then checks its own work and throws out anything it can't back up with your actual experience.
 
-Built for the Agentic AI Hackathon 2025.
+I built this for the Agentic AI Hackathon 2025.
 
-## 🌟 Why this is a True Agentic System (Not a static prompt chain)
+The interesting part isn't the resume writing. It's that the system decides for itself when the
+draft isn't good enough and goes back to fix it, instead of running a fixed sequence of prompts
+and handing you whatever comes out.
 
-This project features a **10-Agent LangGraph Architecture** with a genuine **autonomous replanning loop**:
+## How it works
 
-1. **Multi-Agent Collaboration**: Specialized agents for parsing JD, researching roles, analyzing profiles, mapping evidence, drafting, evaluating, replanning, and verifying.
-2. **Cyclic State Machine**: If the generated resume scores below thresholds on ATS, Formatting, or Factual Consistency, the `Multi-Evaluator` triggers a conditional edge to the `Replanner`. 
-3. **Self-Correction**: The `Replanner` analyzes the specific feedback, creates targeted revision instructions, and loops back to the `Resume Drafter`.
-4. **Factual Integrity Guardrails**: The `Final Verifier` cross-checks every claim against the original candidate data, **removes** any claim it cannot trace, and re-renders the final PDF (`resume_final.pdf`). Removed items are listed in the evidence report.
+Ten agents run as a LangGraph state machine:
 
-## 🛠 Tech Stack
+| Agent | What it does |
+|---|---|
+| JD Parser | Pulls requirements, skills and ATS keywords out of the job posting |
+| Role Researcher | Looks up the role and company (Tavily or DuckDuckGo) for context |
+| Profile Analyzer | Turns your resume or JSON profile into structured data |
+| Evidence Mapper | Matches each requirement to real evidence, and is honest about gaps |
+| Resume Drafter | Writes the tailored resume |
+| PDF Renderer | Renders it through a Jinja2 template |
+| Multi-Evaluator | Scores ATS match, formatting and factual consistency |
+| Replanner | Reads the feedback and writes specific revision instructions |
+| Final Verifier | Checks every claim against your data and strips what it can't trace |
+| Report Generator | Explains what changed and why |
 
-- **Orchestration**: LangGraph (cyclic state machines)
-- **Primary LLM**: Groq (model set by `GROQ_MODEL`, default `llama-3.3-70b-versatile`) — blazing fast inference
-- **Fallback LLM**: Google Gemini (`gemini-2.0-flash`, used only when `GOOGLE_API_KEY` is set)
-- **Backend**: FastAPI + WebSockets (for live agent tracing)
-- **Frontend**: React + Vite (Premium Dark Mode Glassmorphism UI)
-- **PDF Generation**: Jinja2 templates rendered by WeasyPrint when its GTK/Pango libraries are installed, otherwise xhtml2pdf (pure Python — the default on Windows)
-- **Web Search**: Tavily when `TAVILY_API_KEY` is set, otherwise DuckDuckGo (no API key needed)
+The loop is the point: after scoring, the graph takes a conditional edge. If any score is below
+its threshold, the Replanner writes targeted fixes and control goes back to the Drafter — which
+re-drafts, re-renders and gets re-scored. That repeats until the scores pass or it hits the
+revision limit (3 by default). A typical run takes one to four drafts.
 
-## 🎥 Core Workflow (Goal → Decision → Action → Adaptation)
+Everything is streamed to the browser over a WebSocket, so you watch the agents work, see each
+draft get scored, and see the moment the system decides to revise.
 
-1. **Goal**: Produce a tailored, truthful ATS-ready PDF resume.
-2. **Action**: Agents parse JD, research industry, and map genuine evidence to requirements.
-3. **Intermediate Result**: Drafter generates the first resume attempt.
-4. **Decision**: Evaluator scores ATS compatibility, formatting, and factual consistency.
-5. **Adaptation**: If scores are low, the Replanner generates specific instructions and loops back to the Drafter.
-6. **Final Outcome**: PDF rendered, claims verified, and an Evidence Report generated.
+## Not making things up
 
-## 🚀 Getting Started
+The thing that makes resume generators useless is invented experience. Two guardrails:
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
+- The Evidence Mapper only maps requirements to evidence that exists in your profile, and lists
+  the gaps rather than papering over them.
+- The Final Verifier compares every claim in the finished resume against your original data. What
+  it can't trace gets **removed** from the resume, not just flagged, and the PDF is re-rendered
+  without it. The evidence report lists exactly what came out and why.
 
-### 1. Setup Environment
+It errs toward caution, so it sometimes flags a real skill. Anything that appears word-for-word in
+your own data is never removed.
+
+## Setup
+
+You'll need Python 3.10+, Node.js 18+, and a free Groq API key from
+[console.groq.com](https://console.groq.com).
 
 ```powershell
-# Create virtual environment
 python -m venv venv
 .\venv\Scripts\Activate.ps1
-
-# Install backend dependencies
 pip install -r requirements.txt
 
-# Configure environment variables
-cp .env.example .env
-# Edit .env and add your Groq API Key (free at console.groq.com)
+copy .env.example .env
+# put your GROQ_API_KEY in .env
 
-# Install frontend dependencies
 cd frontend
 npm install
 cd ..
 ```
 
-### 2. Run the Application
+Optional keys: `TAVILY_API_KEY` for better web research (DuckDuckGo is used without it), and
+`GOOGLE_API_KEY` for a Gemini fallback when Groq is unavailable.
 
-We've provided a simple one-click script for Windows:
+## Running it
+
 ```powershell
 .\run.ps1
 ```
 
-Or run manually:
-```powershell
-# Terminal 1 (Backend)
-.\venv\Scripts\uvicorn.exe backend.main:app --reload
+Or in two terminals:
 
-# Terminal 2 (Frontend)
-cd frontend
-npm run dev
+```powershell
+.\venv\Scripts\python.exe -m uvicorn backend.main:app --reload
+cd frontend; npm run dev
 ```
 
-### 3. Usage
-1. Open `http://localhost:5173` (the Vite dev server proxies `/api` and `/ws` to the backend on port 8000).
-2. Paste a target Job Description, or click "Load Demo JD & Profile" to use the bundled sample data (Alex Chen).
-3. Choose the candidate source: the demo profile, an uploaded resume (PDF/DOCX/TXT, drag & drop), or pasted resume text / JSON profile.
-4. Pick a template (Modern or Minimal) and start the pipeline.
-5. Watch the pipeline stepper and **Live Agent Trace** as the agents draft, evaluate, and loop back through the Replanner when scores are below threshold. The latest draft previews live.
-6. When finished, review the final PDF, compare drafts in the **Revision History** (with added/removed bullets), read the verification summary and evidence report, and download both.
+Then open http://localhost:5173. The Vite dev server proxies `/api` and `/ws` to the backend on
+port 8000, so you only ever hit one origin.
 
-### 4. Tests
+Paste a job description (or load the bundled demo), pick where your details come from — the demo
+profile, a resume you drag in as PDF/DOCX/TXT, or pasted text/JSON — choose a template, and start.
+When it finishes you can compare drafts in the revision history, see which bullets changed between
+them, read the verification summary, and download the PDF and the report.
+
+## Tests
 
 ```powershell
-# Unit + API tests, including a full offline pipeline run with stubbed LLM calls
 .\venv\Scripts\python.exe -m pytest tests
+```
 
-# Full pipeline against the real LLM providers (uses your API keys)
+That includes a full pipeline run with stubbed LLM calls, so it exercises the revision loop, PDF
+rendering and claim removal without touching the network or costing you tokens.
+
+To run the real thing end to end against the LLM:
+
+```powershell
 .\venv\Scripts\python.exe test_e2e.py
 ```
 
+## Things worth knowing
+
+- **Groq's free tier rate-limits you.** Runs pause for a few seconds here and there while requests
+  back off and retry. It's normal, and it's why a run takes a couple of minutes.
+- **PDF rendering.** WeasyPrint is used when its GTK/Pango libraries are available. On Windows they
+  usually aren't, so it falls back to xhtml2pdf, which is pure Python. The templates use
+  table-based layout so both engines produce the same page.
+- **The scores are LLM judgments,** not a real ATS. Treat them as a useful signal, not truth.
+- **Jobs live in memory.** Restarting the backend loses the job list, though generated files stay
+  in `output/`.
+- **It's a local tool.** The server binds to 127.0.0.1, CORS is restricted, and there's no auth —
+  don't expose it to a network as-is.
+
+## Layout
+
+```
+backend/
+  agents/     the ten agents, the shared state and the graph
+  api/        REST routes, WebSocket trace, in-memory job store
+  tools/      PDF rendering, resume parsing, web search, templates
+  models/     Pydantic schemas
+frontend/src/ React dashboard (upload, live trace, scores, preview, report)
+tests/        pytest suite, including the offline pipeline run
+```
+
 ---
-*Developed by Aditya Singh for the Agentic AI Hackathon.*
+
+Built by Aditya Singh.
