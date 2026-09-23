@@ -1,0 +1,81 @@
+{
+  "name": "Alex Chen",
+  "email": "alex.chen@example.com",
+  "phone": "(555) 123-4567",
+  "location": "San Francisco, CA",
+  "linkedin": "linkedin.com/in/alexc",
+  "github": "github.com/alexc-dev",
+  "portfolio": "alexc.dev",
+  "summary": "Full-stack software engineer with 5 years of experience building scalable web applications. Passionate about AI, agentic systems, and cloud architecture.",
+  "skills": [
+    "Python", "JavaScript", "TypeScript", "Go",
+    "React", "Node.js", "FastAPI", "Django",
+    "PostgreSQL", "MongoDB", "Redis",
+    "Docker", "Kubernetes", "AWS (EC2, S3, Lambda)",
+    "LangChain", "LLMs", "Git", "CI/CD"
+  ],
+  "experience": [
+    {
+      "company": "TechFlow Inc.",
+      "title": "Senior Software Engineer",
+      "start_date": "2022",
+      "end_date": "Present",
+      "description": "Lead developer for the core analytics platform.",
+      "achievements": [
+        "Architected a real-time data processing pipeline using Python and Kafka, reducing data latency by 40%.",
+        "Migrated monolithic backend to microservices using FastAPI and Docker, improving system reliability.",
+        "Mentored 3 junior developers and established code review best practices.",
+        "Integrated LLM-based features for automated report generation, saving 10+ hours per week for analysts."
+      ],
+      "technologies": ["Python", "FastAPI", "Kafka", "Docker", "AWS", "LLMs"]
+    },
+    {
+      "company": "StartupX",
+      "title": "Full Stack Developer",
+      "start_date": "2019",
+      "end_date": "2022",
+      "description": "Developed features for a high-traffic e-commerce platform.",
+      "achievements": [
+        "Built responsive frontend components using React and Redux.",
+        "Optimized database queries, reducing average page load time by 30%.",
+        "Implemented secure payment gateway integration using Stripe API.",
+        "Created an automated inventory tracking system using Node.js."
+      ],
+      "technologies": ["React", "Node.js", "PostgreSQL", "Express", "Stripe"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "AutoCoder AI",
+      "description": "An open-source VS Code extension that generates boilerplate code using local LLMs.",
+      "technologies": ["TypeScript", "Python", "Ollama", "VS Code API"],
+      "url": "github.com/alexc-dev/autocoder",
+      "highlights": [
+        "1,000+ downloads on VS Code Marketplace.",
+        "Runs entirely locally to ensure privacy of proprietary code.",
+        "Uses context-aware prompting to match existing project style."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of California, Berkeley",
+      "degree": "B.S. Computer Science",
+      "field": "Computer Science",
+      "graduation_date": "2019",
+      "gpa": "3.8",
+      "highlights": [
+        "Dean's List 2017-2019",
+        "Vice President of the AI Student Association"
+      ]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect – Associate",
+      "issuer": "Amazon Web Services",
+      "date": "2023",
+      "url": ""
+    }
+  ]
+}

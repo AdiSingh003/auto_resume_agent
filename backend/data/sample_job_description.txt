@@ -1,0 +1,15 @@
+Senior Software Engineer
+Company: TechNova Solutions
+We are looking for a Senior Software Engineer to lead development of our core analytics platform.
+
+Required Skills:
+- 5+ years experience in Python and backend development
+- Experience with FastAPI or Django
+- Strong understanding of microservices architecture
+- Experience with Docker and AWS
+- Kafka or event-driven architecture experience is a big plus
+
+Responsibilities:
+- Architect and build scalable backend services
+- Optimize real-time data processing pipelines
+- Mentor junior engineers
